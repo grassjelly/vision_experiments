@@ -1,3 +1,5 @@
 *.h5
+*.tflite
 *.pyc
+*.log
 __pycache__
