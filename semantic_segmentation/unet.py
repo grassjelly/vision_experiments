@@ -145,7 +145,6 @@ def down_block(input_tensor,
 
     conv = BatchNormalization(scale=True)(conv)
 
-    # conv for skip connection
     conv = Activation("relu")(conv)
 
     pool = MaxPooling2D(pool_size=max_pool_window, strides=max_pool_stride)(conv)
