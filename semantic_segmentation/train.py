@@ -26,7 +26,7 @@ model.summary()
 model.compile(optimizer = optimizers.Adam(lr = 1e-4), loss = 'binary_crossentropy', metrics = ['accuracy'])
 
 callbacks = [
-    callbacks.ModelCheckpoint("semantic_segmentation2.h5", save_best_only=True)
+    callbacks.ModelCheckpoint("semantic_segmentation.h5", save_best_only=True)
 ]
 
 train_gen = DataGen(coco_image, train_image_ids, batch_size = batch_size , image_size = image_size)
