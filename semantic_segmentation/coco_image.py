@@ -28,8 +28,12 @@ class CocoImage:
         return mask * 255
 
     def get_image(self, image_id):
-        sample_img_id = self.coco.getImgIds(imgIds = [image_id])
-        sample_img_dict = self.coco.loadImgs(sample_img_id[np.random.randint(0,len(sample_img_id))])[0]
-        image_file = self._images_folder + sample_img_dict['file_name']
+        image_file = self.get_image_string(image_id)
         image = mpimg.imread(image_file)
         return image
+
+    def get_image_string(self, image_id):
+        sample_img_id = self.coco.getImgIds(imgIds = [image_id])
+        sample_img_dict = self.coco.loadImgs(sample_img_id[np.random.randint(0,len(sample_img_id))])[0]
+        return self._images_folder + sample_img_dict['file_name']
+         
