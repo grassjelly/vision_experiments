@@ -2,7 +2,7 @@ import random
 import copy
 from tensorflow.keras import optimizers
 from tensorflow.keras import callbacks
-import model
+import unet
 from coco_image import CocoImage
 from data import DataGen
 
@@ -21,12 +21,12 @@ train_size = dataset_size - val_size
 train_image_ids = image_ids[:-val_size]
 val_image_ids = image_ids[-val_size:]
 
-model = model.UNet(input_shape = (128,128,3))
+model = unet.get_model(input_shape = (128,128,3))
 model.summary()
 model.compile(optimizer = optimizers.Adam(lr = 1e-4), loss = 'binary_crossentropy', metrics = ['accuracy'])
 
 callbacks = [
-    callbacks.ModelCheckpoint("semantic_segmentation.h5", save_best_only=True)
+    callbacks.ModelCheckpoint("semantic_segmentation2.h5", save_best_only=True)
 ]
 
 train_gen = DataGen(coco_image, train_image_ids, batch_size = batch_size , image_size = image_size)
