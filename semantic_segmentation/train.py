@@ -14,6 +14,8 @@ classes = ['Path']
 coco_image = CocoImage(annotation_file, classes)
 
 image_ids = copy.deepcopy(coco_image.image_ids)
+random.Random(1337).shuffle(image_ids)
+
 dataset_size = coco_image.total_samples
 val_size = int(dataset_size * 0.2)
 train_size = dataset_size - val_size
