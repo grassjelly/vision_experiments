@@ -112,16 +112,15 @@ def bottle_neck(input_tensor,
 
     return conv
 
-def down_block(
-    input_tensor,
-    no_filters,
-    kernel_size=(3, 3),
-    strides=(1, 1),
-    padding="same",
-    kernel_initializer="he_normal",
-    max_pool_window=(2, 2),
-    max_pool_stride=(2, 2)
-):
+def down_block(input_tensor,
+               no_filters,
+               kernel_size=(3, 3),
+               strides=(1, 1),
+               padding="same",
+               kernel_initializer="he_normal",
+               max_pool_window=(2, 2),
+               max_pool_stride=(2, 2)):
+
     conv = Conv2D(
         filters=no_filters,
         kernel_size=kernel_size,
@@ -186,21 +185,21 @@ def get_model(input_shape = (128,128,3)):
                          max_pool_window=(2,2),
                          max_pool_stride=(2,2))
         
-        d4 , p4 = down_block(input_tensor= p3,
-                         no_filters=filter_size[3],
-                         kernel_size = (3,3),
-                         strides=(1,1),
-                         padding="same",
-                         kernel_initializer="he_normal",
-                         max_pool_window=(2,2),
-                         max_pool_stride=(2,2))
-    
-        b = bottle_neck(input_tensor= p4,
-                         no_filters=filter_size[4],
-                         kernel_size = (3,3),
-                         strides=(1,1),
-                         padding="same",
-                         kernel_initializer="he_normal")
+    d4 , p4 = down_block(input_tensor= p3,
+                        no_filters=filter_size[3],
+                        kernel_size = (3,3),
+                        strides=(1,1),
+                        padding="same",
+                        kernel_initializer="he_normal",
+                        max_pool_window=(2,2),
+                        max_pool_stride=(2,2))
+
+    b = bottle_neck(input_tensor= p4,
+                        no_filters=filter_size[4],
+                        kernel_size = (3,3),
+                        strides=(1,1),
+                        padding="same",
+                        kernel_initializer="he_normal")
       
     u4 = up_block(input_tensor = b,
                   no_filters = filter_size[3],
