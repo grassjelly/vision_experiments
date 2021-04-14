@@ -18,6 +18,8 @@ class DataGen(utils.Sequence):
     def __load__(self , image_id):        
         image = self.coco.get_image(image_id)
         image = cv2.resize(image , (self.image_size , self.image_size)) 
+        
+        mask = self.coco.get_mask(image_id)
         mask = cv2.resize(mask , (self.image_size , self.image_size))
         mask = mask.reshape((self.image_size , self.image_size , 1))
         
