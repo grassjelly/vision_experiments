@@ -23,7 +23,7 @@ train_size = dataset_size - val_size
 train_image_ids = image_ids[:-val_size]
 val_image_ids = image_ids[-val_size:]
 
-model = unet.get_model(input_shape = (128,128,3))
+model = unet.get_model(input_shape = (image_size,image_size,3))
 model.summary()
 model.compile(optimizer = optimizers.Adam(lr = 1e-4), loss = 'binary_crossentropy', metrics = ['accuracy'])
 
