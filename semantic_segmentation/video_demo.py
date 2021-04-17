@@ -30,12 +30,12 @@ while(vid.isOpened()):
     
     now = time.time()
     if now - prev_time > 0.08:
-        start = time.time()
+        start = time.perf_counter()
         out = img_seg.predict(img)
-        end = time.time()
+        inference_time = time.perf_counter() - start
+        print('%.1fms' % (inference_time * 1000))
         fps = vid.get(cv2.CAP_PROP_FPS)
         cv2.imshow('frame', out)
-        prev_time = now
 
     if cv2.waitKey(10) & 0xFF == ord('q'):
         break
