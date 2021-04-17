@@ -1,3 +1,6 @@
+import copy
+import random
+
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from coco_image import CocoImage
@@ -8,9 +11,10 @@ def representative_data_gen():
     classes = ['Path']
     image_size = 128
     coco_image = CocoImage(annotation_file, classes)
-    dataset_list = coco_image.image_ids
+    dataset_list = copy.deepcopy(coco_image.image_ids)
+    random.Random(1337).shuffle(dataset_list)
     for i in range(100):
-        image = next(iter(dataset_list))
+        image = dataset_list[i]
         image = coco_image.get_image_string(image)
         image = tf.io.read_file(image)
         image = tf.io.decode_jpeg(image, channels=3)
@@ -33,8 +37,8 @@ converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
 # For full integer quantization, though supported types defaults to int8 only, we explicitly declare it for clarity.
 converter.target_spec.supported_types = [tf.int8]
 # These set the input and output tensors to uint8 (added in r2.3)
-converter.inference_input_type = tf.uint8
-converter.inference_output_type = tf.uint8
+converter.inference_input_type = tf.int8
+converter.inference_output_type = tf.int8
 tflite_model = converter.convert()
 
 with open('semantic_segmentation.tflite', 'wb') as f:
