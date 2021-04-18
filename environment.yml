@@ -3,10 +3,11 @@ name: vision_experiments
 channels:
   - conda-forge
 dependencies:
-  - python==3.8
-  - tensorflow-gpu
+  # - python==3.8 #3.7.7
+  - tensorflow-gpu=2.2.0 #2.2.0
   - numpy
-  - opencv
   - ffmpeg
+  - opencv
   - matplotlib
+  - cython
   - pip
