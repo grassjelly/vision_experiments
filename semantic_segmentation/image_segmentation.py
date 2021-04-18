@@ -6,8 +6,8 @@ import cv2
 class ImageSegmentation:
     def __init__(self, model):
         self.model = load_model(model)
-        _, in_h, in_w, _ = self.model.layers[0].get_input_at(0).get_shape()
-        self.image_size = (m_h, m_w)
+        _, in_h, in_w, _ = self.model.input.shape
+        self.image_size = (in_h, in_w)
 
     def predict(self, img):
         img_height, img_width, _ = img.shape
