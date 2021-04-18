@@ -24,17 +24,20 @@ def representative_data_gen():
         yield [image]
 
 model = load_model(MODEL_FILE)
-_, image_height, image_width, _ = model.layers[0].get_input_at(0).get_shape()
+_, image_height, image_width, _ = model.input.shape
 
-converter = tf.lite.TFLiteConverter.from_keras_model(model)
+
+# converter = tf.lite.TFLiteConverter.from_keras_model(model)
+#for now tf2.2.0 we use a tfv1 loader to be able to compile QUANTIZE AND DEQUANTIZE operations
+converter = tf.compat.v1.lite.TFLiteConverter.from_keras_model_file(MODEL_FILE)
 converter.experimental_new_converter = False
 
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
 converter.representative_dataset = representative_data_gen
 converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
 converter.target_spec.supported_types = [tf.int8]
-converter.inference_input_type = tf.int8
-converter.inference_output_type = tf.int8
+converter.inference_input_type = tf.uint8
+converter.inference_output_type = tf.uint8
 tflite_model = converter.convert()
 
 with open(output_file, 'wb') as f:
