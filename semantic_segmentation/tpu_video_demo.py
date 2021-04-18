@@ -1,129 +1,53 @@
-# Lint as: python3
-# Copyright 2019 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-r"""An example of semantic segmentation.
-The following command runs this script and saves a new image showing the
-segmented pixels at the location specified by `output`:
-```
-bash examples/install_requirements.sh semantic_segmentation.py
-python tpu_video_demo.py \
-  --model semantic_segmentation_edgetpu.tflite \
-  --HOUGANG_538686_15.jpg \
-  --keep_aspect_ratio \
-  --tpu_segmentation_result.jpg
-```
-"""
-
+#    sudo apt install python3-tflite-runtime
 import argparse
-
+import time
+import collections
+import operator
 import numpy as np
+import time
 from PIL import Image
 
-from pycoral.adapters import common
-from pycoral.adapters import segment
-from pycoral.utils.edgetpu import make_interpreter
+import tflite_runtime.interpreter as tflite
+import platform
+import matplotlib.pyplot as plt
 
+IMAGE_SAMPLE = '/home/juan/DATASET/HOUGANG/HOUGANG_538686_20.jpg'
+MODEL_FILE = 'semantic_segmentation_edgetpu.tflite'
 
-def create_pascal_label_colormap():
-  """Creates a label colormap used in PASCAL VOC segmentation benchmark.
-  Returns:
-    A Colormap for visualizing segmentation results.
-  """
-  colormap = np.zeros((256, 3), dtype=int)
-  indices = np.arange(256, dtype=int)
+def predict(interpreter, image):
+	tensor_index = interpreter.get_input_details()[0]['index']
+	interpreter.tensor(tensor_index)()[0]  =  image
 
-  for shift in reversed(range(8)):
-    for channel in range(3):
-      colormap[:, channel] |= ((indices >> channel) & 1) << shift
-    indices >>= 3
+	interpreter.invoke()
 
-  return colormap
+	output_details = interpreter.get_output_details()[0]
+	output_data = np.squeeze(interpreter.tensor(output_details['index'])())
 
+	if  np.issubdtype(output_details['dtype'], np.integer):
+		scale, zero_point = output_details['quantization']
+		output_data =  scale * (output_data - zero_point)
 
-def label_to_color_image(label):
-  """Adds color defined by the dataset colormap to the label.
-  Args:
-    label: A 2D array with integer type, storing the segmentation label.
-  Returns:
-    result: A 2D array with floating type. The element of the array
-      is the color indexed by the corresponding element in the input label
-      to the PASCAL color map.
-  Raises:
-    ValueError: If label is not of rank 2 or its value is larger than color
-      map maximum entry.
-  """
-  if label.ndim != 2:
-    raise ValueError('Expect 2-D input label')
+	return (output_data * 255.0 < 0).astype(int)
 
-  colormap = create_pascal_label_colormap()
+MODEL_FILE, *device = MODEL_FILE.split('@')
+interpreter = tflite.Interpreter(
+		model_path=MODEL_FILE,
+		experimental_delegates=[
+			tflite.load_delegate('libedgetpu.so.1',
+								{'device': device[0]} if device else {})
+		])
 
-  if np.max(label) >= len(colormap):
-    raise ValueError('label value too large.')
+interpreter.allocate_tensors()
 
-  return colormap[label]
+_, in_h, in_w, _ = interpreter.get_input_details()[0]['shape']
+size = (in_h, in_w)
+image = Image.open(IMAGE_SAMPLE).convert('RGB').resize(size, Image.ANTIALIAS)
 
-
-def main():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--model', required=True,
-                      help='Path of the segmentation model.')
-  parser.add_argument('--input', required=True,
-                      help='File path of the input image.')
-  parser.add_argument('--output', default='semantic_segmentation_result.jpg',
-                      help='File path of the output image.')
-  parser.add_argument(
-      '--keep_aspect_ratio',
-      action='store_true',
-      default=False,
-      help=(
-          'keep the image aspect ratio when down-sampling the image by adding '
-          'black pixel padding (zeros) on bottom or right. '
-          'By default the image is resized and reshaped without cropping. This '
-          'option should be the same as what is applied on input images during '
-          'model training. Otherwise the accuracy may be affected and the '
-          'bounding box of detection result may be stretched.'))
-  args = parser.parse_args()
-
-  interpreter = make_interpreter(args.model, device=':0')
-  interpreter.allocate_tensors()
-  width, height = common.input_size(interpreter)
-
-  img = Image.open(args.input)
-  if args.keep_aspect_ratio:
-    resized_img, _ = common.set_resized_input(
-        interpreter, img.size, lambda size: img.resize(size, Image.ANTIALIAS))
-  else:
-    resized_img = img.resize((width, height), Image.ANTIALIAS)
-    common.set_input(interpreter, resized_img)
-
-  interpreter.invoke()
-
-  result = segment.get_output(interpreter)
-  if len(result.shape) == 3:
-    result = np.argmax(result, axis=-1)
-
-  # If keep_aspect_ratio, we need to remove the padding area.
-  new_width, new_height = resized_img.size
-  result = result[:new_height, :new_width]
-  mask_img = Image.fromarray(label_to_color_image(result).astype(np.uint8))
-
-  # Concat resized input image and processed segmentation results.
-  output_img = Image.new('RGB', (2 * new_width, new_height))
-  output_img.paste(resized_img, (0, 0))
-  output_img.paste(mask_img, (width, 0))
-  output_img.save(args.output)
-  print('Done. Results saved at', args.output)
-
-if __name__ == '__main__':
-  main()
+for i in range(5):
+	start = time.perf_counter()
+	mask = predict(interpreter, image)
+	inference_time = time.perf_counter() - start
+	print('%.1fms' % (inference_time * 1000))
+	
+	plt.imshow(mask)
+	plt.show()
