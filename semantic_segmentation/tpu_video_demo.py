@@ -48,6 +48,6 @@ for i in range(5):
 	mask = predict(interpreter, image)
 	inference_time = time.perf_counter() - start
 	print('%.1fms' % (inference_time * 1000))
-	
+
 	plt.imshow(mask)
 	plt.show()
