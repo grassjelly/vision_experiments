@@ -1,4 +1,3 @@
-#    sudo apt install python3-tflite-runtime
 import argparse
 import time
 import collections
@@ -26,8 +25,10 @@ def predict(interpreter, image):
 	if  np.issubdtype(output_details['dtype'], np.integer):
 		scale, zero_point = output_details['quantization']
 		output_data =  scale * (output_data - zero_point)
+	
+	output_data *= 255
 
-	return (output_data * 255.0 < 0).astype(int)
+	return (output_data > 125).astype(int)
 
 MODEL_FILE, *device = MODEL_FILE.split('@')
 interpreter = tflite.Interpreter(
