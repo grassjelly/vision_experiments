@@ -3,8 +3,6 @@
 Dependencies:
 
     mamba env create -f environement.yml
-    pip install git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
-    pip install matplotlib
 
 TPU Tools:
 

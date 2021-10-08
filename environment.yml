@@ -11,3 +11,7 @@ dependencies:
   - matplotlib
   - cython
   - pip
+  - pip:  
+    - matplotlib
+    - git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
+
