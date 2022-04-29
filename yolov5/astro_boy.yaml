@@ -1,0 +1,9 @@
+train: astro_boy_dataset/images/train/ 
+val:  astro_boy_dataset/images/val/
+test: astro_boy_dataset/images/test/
+
+# number of classes
+nc: 1
+
+# class names
+names: ["astro_boy"]
